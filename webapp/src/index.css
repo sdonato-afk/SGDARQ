@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  SISTEMA D+ARQ TEMAS GLOBALES 
+  Aquí puedes reemplazar los valores HEX por tus Pantones reales
+*/
+
+:root {
+  /* TIPOGRAFIA OFICIAL */
+  /* Reemplaza Montserrat por la fuente que mas te guste de Google Fonts (previamente cargada en index.html) */
+  --font-primary: 'Montserrat', sans-serif;
+
+  /* COLORES DE IDENTIDAD (Podes buscar Color Picker de Google y copiar el #HEX) */
+  --color-brand-50:  #f0fdfa; /* Tinte muy claro */
+  --color-brand-100: #ccfbf1; /* Tinte claro para fondos */
+  --color-brand-500: #14b8a6; /* Tono principal (Ej. Verde Esmeralda) - Cambialo a tu color oficial */
+  --color-brand-600: #0d9488; /* Tono más oscuro para el 'Hover' al pasar el mouse por un botón */
+  --color-brand-900: #134e4a; /* Tono muy oscuro para textos o menúes laterales */
+}
+
+/* Aplicación Global */
+body {
+  font-family: var(--font-primary);
+}
