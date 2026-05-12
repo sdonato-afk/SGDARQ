@@ -74,6 +74,8 @@ import { useFinanzasGlobal }     from './hooks/useFinanzasGlobal';
 import { useFinanzasArea }       from './hooks/useFinanzasArea';
 import { useResumenDetalle }     from './hooks/useResumenDetalle';
 import { useCobrosPendientes }   from './hooks/useCobrosPendientes';
+import { useImportETL }          from './hooks/useImportETL';
+import ImportSpreadsheetModal    from './components/ImportSpreadsheetModal';
 import {
   convertToUSD as _convertToUSD,
   normalizeYearMonth,
@@ -124,9 +126,10 @@ function App() {
 
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [clearArea, setClearArea] = useState(null);
-  const [directorDetalle, setDirectorDetalle] = useState(null); // kept for compat — unused
-  const [showDirSeb, setShowDirSeb] = useState(true); // kept for compat — unused
+  const [directorDetalle, setDirectorDetalle] = useState(null);
+  const [showDirSeb, setShowDirSeb] = useState(true);
   const [isReconciliarOpen, setIsReconciliarOpen] = useState(false);
+  const [importModalArea, setImportModalArea] = useState(null); // null = cerrado
 
   // Estado Transferencias — movido a Resumen.jsx
   // Estado Vencimientos — movido a Resumen.jsx
@@ -216,6 +219,11 @@ function App() {
 
   const cobrosPendientes = useCobrosPendientes(
     movimientos, contratos, propiedades, clientes, finanzasAreaSeleccionada
+  );
+
+  // ─── IMPORTADORES ETL ───
+  const { importText, setImportText, isImporting, importProgress, handleImport } = useImportETL(
+    { obras, proveedores, clientes, propiedades, contratos, movimientos, cotizacionBlue }
   );
 
   const handleSaveCobro = async (cobros) => {
@@ -605,10 +613,9 @@ function App() {
               } : undefined}
               onOpenCobro={canLoad ? () => setIsModalCobroOpen(true) : undefined}
               onOpenImportar={canLoad ? (area) => {
-                if (area === 'Obras') setIsImportarObrasOpen(true);
-                if (area === 'Directorio') setIsImportarDirectorioOpen(true);
-                if (area === 'Alquileres') setIsImportarAlquileresOpen(true);
-                if (area === 'Oficina') setIsImportarOficinaOpen(true);
+                // 'General' (desde el botón de Resumen) → abre Obras por defecto
+                const mapped = area === 'General' ? 'Obras' : area;
+                setImportModalArea(mapped);
               } : undefined}
               userRole={userRole}
               canLoad={canLoad}
@@ -720,6 +727,18 @@ function App() {
       <ModalProveedor open={isModalProvOpen} onClose={() => setIsModalProvOpen(false)} initialData={formProv} tiposProv={tiposProv}/>
       {/* MODAL CLIENTE */}
       <ModalCliente open={isModalClienteOpen} onClose={() => setIsModalClienteOpen(false)} />
+
+      {/* MODAL IMPORTAR SPREADSHEET */}
+      <ImportSpreadsheetModal
+        open={!!importModalArea}
+        area={importModalArea || 'Obras'}
+        importText={importText}
+        onChangeText={setImportText}
+        onImport={() => handleImport(importModalArea, () => setImportModalArea(null))}
+        onClose={() => setImportModalArea(null)}
+        isImporting={isImporting}
+        importProgress={importProgress}
+      />
 
 
 

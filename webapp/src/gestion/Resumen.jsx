@@ -375,6 +375,29 @@ export default function Resumen({ movimientos, vencimientos, cotizacionBlue, cot
                   {reqUSD > 0 && (
                     <p className="text-[10px] font-bold text-slate-500 mt-0.5">u$d {reqUSD.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</p>
                   )}
+                  {/* Desglose por caja */}
+                  {rawReqItems.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-white/[0.06] space-y-1">
+                      {cajasDisplay
+                        .filter(c => rawReqItems.some(i => i.caja === c.key))
+                        .map(c => {
+                          const cajaItems = rawReqItems.filter(i => i.caja === c.key);
+                          const cajaARS = cajaItems.reduce((a, i) => a + (parseFloat(i.ars) || 0), 0);
+                          const cajaUSD = cajaItems.reduce((a, i) => a + (parseFloat(i.usd) || 0), 0);
+                          const shortLabel = c.label.replace('Banco ', '').replace('Caja ', '');
+                          return (
+                            <div key={c.key} className="flex justify-between items-center">
+                              <span className={`text-[9px] font-black ${c.textColor}`}>{shortLabel}</span>
+                              <span className="text-[9px] font-bold text-slate-400">
+                                {cajaARS > 0 && `$${cajaARS.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`}
+                                {cajaARS > 0 && cajaUSD > 0 && ' · '}
+                                {cajaUSD > 0 && `u$d${cajaUSD.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Certificaciones pendientes de cobro */}

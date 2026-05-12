@@ -74,3 +74,16 @@
   --z-modal:    200;
   --z-toast:    300;
 }
+
+/* ── SearchableSelect portal — garantiza dark styling con Tailwind v4 ──
+   createPortal() renderiza en document.body. Con Tailwind v4 el preflight
+   puede interferir con inline styles; estas clases los refuerzan con !important.
+   ──────────────────────────────────────────────────────────────────────── */
+.darq-select-dropdown {
+  background-color: #111827 !important;
+  color: #e2e8f0 !important;
+}
+.darq-select-option {
+  color: #e2e8f0 !important;
+  background-color: transparent !important;
+}

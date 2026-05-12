@@ -145,6 +145,7 @@ export default function SearchableSelect({
       {open && createPortal(
         <div
           ref={dropRef}
+          className="darq-select-dropdown"
           style={{
             position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999,
             background: C.bgDrop, border: `1px solid ${C.borderDrop}`, borderRadius: 12,
@@ -199,6 +200,7 @@ export default function SearchableSelect({
               <button
                 key={o.value}
                 type="button"
+                className="darq-select-option"
                 onClick={() => handleSelect(o.value)}
                 style={{
                   width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', cursor: 'pointer',
