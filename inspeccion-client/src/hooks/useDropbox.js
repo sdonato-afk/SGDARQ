@@ -152,12 +152,19 @@ export async function dropboxCreateSharedLink(path) {
   }
 }
 
-export async function dropboxListImages(obraId, obraNombre) {
-  const path = obraFolderPath(obraId, obraNombre);
-  const data = await dbxApi('files/list_folder', { path, recursive: false });
-  return data.entries
-    .filter(e => e['.tag'] === 'file' && /\.(jpg|jpeg|png|webp|heic|gif)$/i.test(e.name))
-    .sort((a, b) => b.name.localeCompare(a.name)); // más recientes primero
+export async function dropboxListImages(obraId, obraNombre, subfolder = '') {
+  const basePath = obraFolderPath(obraId, obraNombre);
+  const path     = subfolder ? `${basePath}/${subfolder}` : basePath;
+  try {
+    const data = await dbxApi('files/list_folder', { path, recursive: true }); // recursive: busca en Bitacora/ y subcarpetas
+    return data.entries
+      .filter(e => e['.tag'] === 'file' && /\.(jpg|jpeg|png|webp|heic|gif)$/i.test(e.name))
+      .sort((a, b) => b.name.localeCompare(a.name)); // más recientes primero
+  } catch (e) {
+    // Si la carpeta no existe todavía, devolver array vacío
+    if (e.message?.includes('not_found')) return [];
+    throw e;
+  }
 }
 
 export async function dropboxDeleteFile(path) {

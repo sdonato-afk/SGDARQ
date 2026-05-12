@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Upload, ArrowLeft, Loader2, X, Plus } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { SearchableSelect } from '@darq/ui';
 import { db } from '../config/firebase';
-import { dropboxUpload, dropboxCreateFolder } from '../hooks/useDropbox';
+import { dropboxUpload, dropboxCreateFolder, dropboxCreateSharedLink } from '../hooks/useDropbox';
+
+// Debe coincidir con la colección que usa obras-client
+const OBRAS_COL = 'obras';
 
 export default function BitacoraVisual({ onBack, selectedObra }) {
   const obraId = selectedObra?.id;
@@ -53,7 +56,26 @@ export default function BitacoraVisual({ onBack, selectedObra }) {
       // Subir fotos secuencialmente para no saturar la red del móvil
       for (let i = 0; i < fotos.length; i++) {
         const fotoItem = fotos[i];
-        await dropboxUpload(obraId, obraSelected?.nombre, fotoItem.file, `Bitacora_${i+1}`, 'Bitacora');
+
+        // 1. Upload a Dropbox (subcarpeta Bitacora/)
+        const meta = await dropboxUpload(
+          obraId, obraSelected?.nombre, fotoItem.file,
+          `Bitacora_${i + 1}`, 'Bitacora'
+        );
+
+        // 2. Crear shared link público (necesario para que obras-client pueda mostrar la imagen)
+        const url = await dropboxCreateSharedLink(meta.path_display);
+
+        // 3. Registrar en Firestore → aparece inmediatamente en TabBitacora de obras-client
+        await addDoc(collection(db, OBRAS_COL, obraId, 'fotos'), {
+          fecha:        new Date().toISOString().slice(0, 10),
+          descripcion:  `Campo · Foto ${i + 1} de ${fotos.length}`,
+          url,
+          dropbox_path: meta.path_display,
+          subida_por:   'inspeccion',
+          createdAt:    new Date().toISOString(),
+        });
+
         setProgreso(prev => ({ ...prev, actual: i + 1 }));
       }
 
