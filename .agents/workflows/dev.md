@@ -94,9 +94,6 @@ git clone https://github.com/sdonato-afk/SGDARQ.git C:\Dev\darq
 cd C:\Dev\darq
 npm install
 
-# Fix tailwind v3 para inspeccion-client (siempre necesario)
-npm install tailwindcss@3.4.19 --prefix inspeccion-client --no-save
-
 # Copiar manualmente desde Dropbox (NO están en Git):
 # - obras-client/.env           → C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\obras-client\.env
 # - sg-darq-service-account.json → C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\sg-darq-service-account.json
@@ -114,12 +111,7 @@ cd C:\Dev\darq\inspeccion-client && npm run dev
 
 ## ⚠️ Advertencias críticas
 
-1. **Tailwind v3 en inspeccion-client**: Después de cualquier `npm install` limpio, reinstalar:
-   ```
-   npm install tailwindcss@3.4.19 --prefix C:\Dev\darq\inspeccion-client --no-save
-   ```
-
-2. **Archivos que NO están en Git** (copiar desde Dropbox al clonar en PC nueva):
+1. **Archivos que NO están en Git** (copiar desde Dropbox al clonar en PC nueva):
    - `C:\Dev\darq\obras-client\.env`
    - `C:\Dev\darq\sg-darq-service-account.json`
 
