@@ -47,6 +47,23 @@ El repositorio está en GitHub: `https://github.com/sdonato-afk/SGDARQ`
 
 ---
 
+## Archivos de entorno (.env)
+
+| Módulo | ¿Necesita .env? | Contenido | Backup |
+|---|---|---|---|
+| webapp | ❌ No | Firebase config hardcodeada en `src/config/firebase.js` | — |
+| obras-client | ✅ Sí | Dropbox API tokens | `C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\obras-client\.env` |
+| agenda-client | ❌ No | Firebase hardcodeado en su config | — |
+| inspeccion-client | ❌ No | Firebase hardcodeado en su config | — |
+
+> ⚠️ El `obras-client/.env` NO está en Git (gitignoreado). Está respaldado en Dropbox.
+> Al clonar en una PC nueva, copiar desde: `C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\obras-client\.env`
+
+El `sg-darq-service-account.json` también está gitignoreado. Backup en:
+`C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\sg-darq-service-account.json`
+
+---
+
 ## Protocolo multi-PC (Git)
 
 **Dropbox ya NO se usa para sincronizar código.** El sync entre PCs se hace con Git.
@@ -76,16 +93,17 @@ cd C:\Dev\darq
 git clone https://github.com/sdonato-afk/SGDARQ.git C:\Dev\darq
 cd C:\Dev\darq
 npm install
+
 # Fix tailwind v3 para inspeccion-client (siempre necesario)
 npm install tailwindcss@3.4.19 --prefix inspeccion-client --no-save
-# Copiar manualmente los .env y sg-darq-service-account.json (no están en Git)
+
+# Copiar manualmente desde Dropbox (NO están en Git):
+# - obras-client/.env           → C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\obras-client\.env
+# - sg-darq-service-account.json → C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\sg-darq-service-account.json
 ```
 
 ### Arrancar servidores de desarrollo
 ```powershell
-# Workspace root (arranca todos los módulos a la vez si hay script configurado)
-cd C:\Dev\darq
-
 # O módulo por módulo:
 cd C:\Dev\darq\webapp && npm run dev
 cd C:\Dev\darq\obras-client && npm run dev
@@ -101,10 +119,14 @@ cd C:\Dev\darq\inspeccion-client && npm run dev
    npm install tailwindcss@3.4.19 --prefix C:\Dev\darq\inspeccion-client --no-save
    ```
 
-2. **Archivos que NO están en Git** (copiar manualmente entre PCs):
+2. **Archivos que NO están en Git** (copiar desde Dropbox al clonar en PC nueva):
+   - `C:\Dev\darq\obras-client\.env`
    - `C:\Dev\darq\sg-darq-service-account.json`
-   - Cada `.env` y `.env.local` de los módulos (contienen tokens Firebase/Dropbox)
 
 3. **El deploy siempre desde `C:\Dev\darq`**, nunca desde Dropbox.
 
-4. **Dropbox solo para datos de obra** (fotos, planos, informes en `/D+ARQ/Obras/`).
+4. **Dropbox solo para datos de obra** (fotos, planos, informes en `/D+ARQ/Obras/`)
+   y como **backup de los .env** que no están en Git.
+
+5. **NO editar desde la carpeta Dropbox** (`C:\Users\cuba\Dropbox\D+ARQ\sitema de gestion\`).
+   Esa carpeta es un archivo histórico. El código activo está en `C:\Dev\darq`.
