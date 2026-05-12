@@ -4,9 +4,27 @@
 /* ═══ GOOGLE FONTS (también cargado en index.html) ═══ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400;1,600&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* ═══ TAILWIND v4 THEME — custom D+ARQ tokens ═══
+   Reemplaza tailwind.config.js. @theme inline permite usar var() en tiempo de ejecución.
+   Habilita clases como: bg-darq-bg, text-darq-accent, border-darq-border, etc.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@theme inline {
+  --font-family-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: var(--font-mono), ui-monospace, monospace;
+  --color-darq-bg:      var(--bg);
+  --color-darq-bg2:     var(--bg2);
+  --color-darq-card:    var(--bg-card);
+  --color-darq-border:  var(--border);
+  --color-darq-text:    var(--text);
+  --color-darq-muted:   var(--text-muted);
+  --color-darq-accent:  var(--accent);
+  --color-darq-accent2: var(--accent2);
+  --color-darq-green:   var(--green);
+  --color-darq-red:     var(--red);
+  --color-darq-amber:   var(--amber);
+}
 
 /* ═══ PHASE 4B — Remap text-slate-* → CSS design tokens ═══════════════════
    Placed AFTER @tailwind utilities so cascade order takes precedence.
