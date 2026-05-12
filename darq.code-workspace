@@ -1,0 +1,33 @@
+{
+  "folders": [
+    { "path": "." }
+  ],
+  "settings": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false,
+    "editor.tabSize": 2,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vite": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "package.json": "package-lock.json, .npmrc",
+      "vite.config.*": "postcss.config.*, .gitattributes",
+      "*.jsx": "${capture}.css"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "christian-kohler.path-intellisense"
+    ]
+  }
+}

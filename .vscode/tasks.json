@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🚀 Dev: Todos los módulos",
+      "type": "shell",
+      "command": "npm run dev:all",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": true
+      },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "🌐 Dev: webapp (admin)",
+      "type": "shell",
+      "command": "npm run dev:webapp",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "🏗️ Dev: obras-client",
+      "type": "shell",
+      "command": "npm run dev:obras",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "📅 Dev: agenda-client",
+      "type": "shell",
+      "command": "npm run dev:agenda",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "📱 Dev: inspeccion-client (PWA)",
+      "type": "shell",
+      "command": "npm run dev:inspec",
+      "presentation": { "reveal": "always", "panel": "new" }
+    },
+    {
+      "label": "🚢 Deploy a producción",
+      "type": "shell",
+      "command": ".\\deploy.ps1",
+      "presentation": { "reveal": "always", "panel": "new" }
+    }
+  ]
+}
