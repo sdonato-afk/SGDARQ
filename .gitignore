@@ -1,0 +1,75 @@
+# ── Dependencias (NUNCA al repo) ──────────────────────────────────────
+node_modules/
+**/node_modules/
+
+# ── Builds (se regeneran en deploy) ───────────────────────────────────
+dist/
+**/dist/
+build/
+
+# ── Cache de herramientas ──────────────────────────────────────────────
+.vite/
+**/.vite/
+.cache/
+vite.config.js.timestamp-*.mjs
+**/vite.config.js.timestamp-*.mjs
+
+# ── Variables de entorno (secretos) ───────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Credenciales y secretos ────────────────────────────────────────────
+sg-darq-service-account.json
+Backup-codes-sdonato.txt
+
+# ── Archivos comprimidos y backups ─────────────────────────────────────
+*.zip
+_backups/
+
+# ── Scripts de migración one-off (debris) ─────────────────────────────
+audit_*.cjs
+audit_*.mjs
+backup_firestore.mjs
+check_*.js
+check_*.cjs
+compact_ui.js
+copy_handlers*.js
+correccion_cajas.cjs
+delete_propiedades.*
+do_*.js
+empty_all_collections.js
+find_tabs.js
+fix_*.js
+fix_*.cjs
+fix_encoding.ps1
+inject_dashes.js
+migrar_*.cjs
+migrar_*.mjs
+migrar_*_preview.json
+restore_render.js
+rewrite_imports.js
+
+# ── Archivos temporales de código ──────────────────────────────────────
+*.bak
+new_area_blocks.txt
+new_obras.txt
+restored_block.txt
+asientos_new.txt
+constants_dash.js
+
+# ── Carpetas obsoletas ─────────────────────────────────────────────────
+obras-client-v2/
+_DEV_SANDBOX/
+scratch/
+test_facturas/
+
+# ── Instaladores ──────────────────────────────────────────────────────
+*.msi
+*.exe
+
+# ── OS ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

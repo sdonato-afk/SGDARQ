@@ -1,0 +1,14 @@
+{
+  "name": "darq-management-suite",
+  "private": true,
+  "workspaces": [
+    "webapp",
+    "obras-client",
+    "agenda-client",
+    "inspeccion-client",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "firebase-admin": "^13.8.0"
+  }
+}

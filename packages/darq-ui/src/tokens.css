@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   D+ARQ · DESIGN TOKENS — Fuente única de verdad
+   Importar en cada app: @import '@darq/ui/src/tokens.css';
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Fuentes ────────────────────────────────────────────────────────── */
+/* Cargar desde index.html de cada app con:
+   Inter (300–900) + JetBrains Mono (400,600 italic)
+   URL: https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900
+        &family=JetBrains+Mono:ital,wght@0,400;0,600;1,400;1,600&display=swap
+*/
+
+:root {
+  /* Tipografía */
+  --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-size-base: 14px;
+
+  /* Fondo y superficies */
+  --bg:         #060811;   /* fondo global */
+  --bg2:        #0b0f1a;   /* fondo secundario / inputs */
+  --bg-card:    rgba(10, 13, 24, 0.60);  /* tarjetas glass */
+  --bg-hover:   rgba(255, 255, 255, 0.03);
+
+  /* Bordes */
+  --border:     rgba(255, 255, 255, 0.07);
+  --border-md:  rgba(255, 255, 255, 0.12);
+
+  /* Texto */
+  --text:       #e2e8f0;   /* texto principal */
+  --text-muted: #64748b;   /* texto secundario */
+  --text-dim:   rgba(255, 255, 255, 0.25); /* placeholders, hints */
+
+  /* Acento principal — Indigo */
+  --accent:     #6366f1;
+  --accent2:    #818cf8;
+  --accent-bg:  rgba(99, 102, 241, 0.10);
+  --accent-border: rgba(99, 102, 241, 0.20);
+
+  /* Semánticos */
+  --green:      #34d399;
+  --green-bg:   rgba(52, 211, 153, 0.10);
+  --red:        #f87171;
+  --red-bg:     rgba(248, 113, 113, 0.10);
+  --amber:      #fbbf24;
+  --amber-bg:   rgba(251, 191, 36, 0.10);
+  --blue:       #60a5fa;
+  --blue-bg:    rgba(96, 165, 250, 0.10);
+
+  /* Radios */
+  --radius-sm:  8px;
+  --radius:     12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-sm:  0 2px 8px rgba(0, 0, 0, 0.20);
+  --shadow:     0 4px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg:  0 25px 50px rgba(0, 0, 0, 0.50);
+
+  /* Blur glass */
+  --blur:       blur(16px);
+  --blur-sm:    blur(8px);
+
+  /* Transiciones */
+  --transition: all 0.15s ease;
+  --transition-md: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-index escala */
+  --z-sidebar:  50;
+  --z-overlay:  99;
+  --z-drawer:   100;
+  --z-modal:    200;
+  --z-toast:    300;
+}

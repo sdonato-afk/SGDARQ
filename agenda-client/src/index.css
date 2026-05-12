@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   D+ARQ · Agenda Client — Estilos base
+   El sistema de diseño completo viene de @darq/ui/src/index.css
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1. Sistema de diseño compartido: tokens + componentes (.glass, .badge-*, .btn-*, .kpi, etc.) */
+@import '@darq/ui/src/index.css';
+
+/* 2. Tailwind v4 — genera utilidades CSS sobre los mismos tokens */
+@import 'tailwindcss';
+
+/* 3. Mapeo de tokens darq-ui → Tailwind theme */
+@theme {
+  --font-family-sans: 'Inter', -apple-system, sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+  --color-bg:      #060811;
+  --color-bg2:     #0b0f1a;
+  --color-accent:  #6366f1;
+  --color-accent2: #818cf8;
+  --color-green:   #34d399;
+  --color-red:     #f87171;
+  --color-amber:   #fbbf24;
+  --color-border:  rgba(255, 255, 255, 0.07);
+  --color-text:    #e2e8f0;
+  --color-muted:   #64748b;
+}
+
+/* 4. Agenda-specific: scrollbar acento indigo */
+::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.25); }
+::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.50); }
+
+/* 5. Row card — patrón específico de listas de vencimientos/eventos */
+.row-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+.row-card:hover { background: rgba(255,255,255,0.045); border-color: rgba(255,255,255,0.10); }
+.row-card--urgent { background: rgba(248,113,113,0.05); border-color: rgba(248,113,113,0.18); }
+.row-card--paid   { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.14); }
+.row-card--linked { background: rgba(99,102,241,0.05);  border-color: rgba(99,102,241,0.18); }

@@ -1,0 +1,316 @@
+/* ── DarqSidebar.css ───────────────────────────── */
+
+.darq-sidebar-wrapper {
+  flex-shrink: 0;
+  height: 100vh;
+  padding: 16px 0 16px 16px; /* Flotante: margen arr, izq, abj */
+  box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 50;
+}
+
+.darq-sidebar-wrapper.expanded {
+  width: 280px; /* 264px + 16px margin */
+}
+
+.darq-sidebar-wrapper.collapsed {
+  width: 96px; /* 80px + 16px margin */
+}
+
+.darq-sidebar {
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 13, 24, 0.6); /* Color súper oscuro con un toque de azul */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.darq-sidebar-glow {
+  position: absolute;
+  top: -60px;
+  left: -60px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ── Header ── */
+.darq-sidebar-header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 10;
+  min-height: 80px;
+}
+
+.collapsed .darq-sidebar-header {
+  padding: 24px 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.darq-sidebar-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.darq-sidebar-brand-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapse-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.collapse-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Scroll Area ── */
+.darq-sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.darq-sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.darq-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.darq-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+.menu-group {
+  margin-bottom: 24px;
+}
+
+.menu-group-title {
+  padding: 0 24px;
+  margin-bottom: 12px;
+}
+
+.menu-group-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 16px 20px;
+}
+
+.menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.nav-item.active {
+  /* Fondo y borde se inyectan por props (theme) */
+}
+
+.nav-item.rail-mode {
+  justify-content: center;
+  padding: 12px 0;
+  width: 48px;
+  margin: 0 auto;
+}
+
+.nav-item.rail-mode:hover {
+  transform: translateX(0) scale(1.05);
+}
+
+.nav-label {
+  font-size: 13px; /* Title Case se lee mejor en 13px o 14px */
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.icon-muted {
+  color: var(--text-muted, #64748b);
+  transition: color 0.2s;
+}
+
+.nav-item:hover .icon-muted {
+  color: #cbd5e1;
+}
+
+/* ── Footer ── */
+.darq-sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collapsed .darq-sidebar-footer {
+  flex-direction: column;
+  padding: 20px 0;
+  justify-content: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+.logout-btn-mini {
+  background: none;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn-mini:hover {
+  background: rgba(244, 63, 94, 0.1);
+}
+
+/* ── Mobile Responsive ────────────────────────────────────────────────────
+   CSS puro — no depende de clases JS.
+   En mobile (<768px): el wrapper sale del flow (fixed), panel off-screen.
+   Se abre con la clase .darq-sidebar-mobile--open en el wrapper.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.darq-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+
+  /* 1. Wrapper sale del flex-flow, no empuja el contenido */
+  .darq-sidebar-wrapper {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    width: auto !important;
+    padding: 0 !important;
+    z-index: 100;
+  }
+
+  /* 2. Panel interno: off-screen por defecto */
+  .darq-sidebar-wrapper .darq-sidebar {
+    width: 280px;
+    height: 100dvh;
+    border-radius: 0 20px 20px 0;
+    transform: translateX(-110%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.7);
+    position: relative;
+  }
+
+  /* 3. Drawer abierto → desliza a la vista */
+  .darq-sidebar-wrapper.darq-sidebar-mobile--open .darq-sidebar {
+    transform: translateX(0);
+  }
+
+  /* 4. Overlay visible cuando está abierto */
+  .darq-sidebar-overlay {
+    display: block;
+    animation: overlayFadeIn 0.2s ease;
+  }
+
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
+
+
+

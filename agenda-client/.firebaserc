@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "sg-darq"
+  },
+  "targets": {
+    "sg-darq": {
+      "hosting": {
+        "agenda": [
+          "darq-agenda"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,304 @@
+/* ═══ D+ARQ DESIGN TOKENS (fuente única de verdad) ═══ */
+@import '@darq/ui/src/tokens.css';
+
+/* ═══ GOOGLE FONTS (también cargado en index.html) ═══ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══ PHASE 4B — Remap text-slate-* → CSS design tokens ═══════════════════
+   Placed AFTER @tailwind utilities so cascade order takes precedence.
+   All components using text-slate-{300–700} now resolve to our token values.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.text-slate-200 { color: var(--text-md);    }  /* #D1D5DB — subtle hi        */
+.text-slate-300 { color: var(--text-md);    }  /* #D1D5DB — secondary text   */
+.text-slate-400 { color: var(--text-lo);    }  /* #9CA3AF — muted default    */
+.text-slate-500 { color: var(--text-muted); }  /* #6B7280 — dimmed labels    */
+.text-slate-600 { color: var(--text-muted); }  /* #6B7280 — very dimmed      */
+.text-slate-700 { color: var(--text-muted); }  /* #6B7280 — near-invisible   */
+
+
+/*
+  D+ARQ MANAGEMENT SYSTEM — DARK PREMIUM DESIGN SYSTEM
+  Palette: Navy Dark + Emerald Accent + Slate Surfaces
+*/
+
+:root {
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Core palette - Deep Space Glassmorphism */
+  --bg-main:       #060811;
+  --bg-sidebar:    rgba(255, 255, 255, 0.02);
+  --bg-card:       rgba(255, 255, 255, 0.04);
+  --bg-card-solid: #0A0D18;
+  --bg-elevated:   rgba(255, 255, 255, 0.06);
+  --border:        rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.03);
+
+  /* Accent — Emerald (webapp identity) */
+  --accent:        #10B981;
+  --accent-glow:   rgba(16, 185, 129, 0.15);
+  --accent-hover:  #34D399;
+  --accent-muted:  rgba(16, 185, 129, 0.12);
+
+  /* Brand blue */
+  --brand-blue:    #3B82F6;
+  --brand-blue-hi: #60A5FA;
+
+  /* Text */
+  --text-hi:    #F9FAFB;
+  --text-md:    #D1D5DB;
+  --text-lo:    #9CA3AF;
+  --text-muted: #6B7280;
+
+  /* States */
+  --success: #10B981;
+  --danger:  #EF4444;
+  --warning: #F59E0B;
+  --info:    #3B82F6;
+
+  /* ── Aliases → darq-ui tokens ─────────────────────────────────────
+     Los componentes de @darq/ui leen estos nombres.
+     Los mapeamos a los valores del webapp para coherencia visual.
+  ─────────────────────────────────────────────────────────────────── */
+  --bg:           var(--bg-main);      /* darq-ui: --bg */
+  --bg2:          var(--bg-card-solid);/* darq-ui: --bg2 */
+  --text:         var(--text-hi);      /* darq-ui: --text */
+  --text-dim:     var(--text-lo);      /* darq-ui: --text-dim */
+  --border-md:    rgba(255,255,255,0.12);
+  --accent2:      var(--accent-hover); /* darq-ui: --accent2 (emerald claro) */
+  --accent-bg:    var(--accent-muted); /* darq-ui: --accent-bg */
+  --accent-border:rgba(16,185,129,0.20);
+  --red:          var(--danger);
+  --red-bg:       rgba(239,68,68,0.10);
+  --amber:        var(--warning);
+  --amber-bg:     rgba(245,158,11,0.10);
+  --green:        var(--accent-hover);
+  --green-bg:     rgba(16,185,129,0.10);
+  --blue:         var(--brand-blue-hi);
+  --blue-bg:      rgba(59,130,246,0.10);
+}
+
+/* ═══ GLOBAL ═══ */
+html { font-size: 14px; }
+
+body {
+  font-family: var(--font-sans);     /* darq-ui token */
+  background-color: var(--bg);       /* → --bg-main via alias */
+  color: var(--text);                /* → --text-hi via alias */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Title font */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-sans); font-weight: 800; }
+
+/* ═══ LAYOUT ═══ */
+aside {
+  background: var(--bg-main) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+header {
+  background: rgba(6, 8, 17, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* ═══ GLASS PANELS ═══ */
+.glass-panel {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2) !important;
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+.glass-input {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-hi) !important;
+}
+.glass-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+  outline: none;
+}
+
+/* ═══ KPI CARDS ═══ */
+.kpi-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
+}
+
+/* ─── Scrollbar general ─── */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* ─── Scrollbar tabla Asientos (horizontal prominente) ─── */
+.table-scrollbar::-webkit-scrollbar { width: 6px; height: 10px; }
+.table-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 10px; margin: 0 4px; }
+.table-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.5); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.table-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.85); }
+.table-scrollbar::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 10px; }
+
+/* ═══ INPUTS & SELECTS ═══ */
+input, select, textarea {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-hi);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow) !important;
+  outline: none !important;
+}
+input::placeholder { color: var(--text-muted) !important; }
+select option { background: var(--bg-card-solid); color: var(--text-hi); }
+
+/* Light modal overrides */
+[data-light-modal] input,
+[data-light-modal] select,
+[data-light-modal] textarea {
+  background: #F0EEE9 !important;
+  color: #111 !important;
+  border: 1px solid rgba(0,0,0,0.25) !important;
+}
+[data-light-modal] select option {
+  background: #F0EEE9 !important;
+  color: #111 !important;
+}
+[data-light-modal] input::placeholder {
+  color: #999 !important;
+}
+
+/* ═══ BUTTONS ═══ */
+button {
+  font-weight: 600 !important;
+  transition: all 0.15s ease !important;
+  border-radius: 0.5rem;
+}
+
+/* ═══ TABLES ═══ */
+table { border-collapse: collapse !important; }
+th {
+  background: rgba(255,255,255,0.02) !important;
+  color: var(--text-lo) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-weight: 900 !important;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.6rem 0.75rem;
+}
+td {
+  color: var(--text-md) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.75rem;
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015) !important; }
+tbody tr:hover td { background: rgba(255,255,255,0.05) !important; }
+
+/* ═══ STATUS BADGES ═══ */
+.badge-active  { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.65rem; font-weight: 700; }
+.badge-done    { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.3); border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.65rem; font-weight: 700; }
+.badge-alert   { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.65rem; font-weight: 700; }
+.badge-danger  { background: rgba(239,68,68,0.12);  color: #F87171; border: 1px solid rgba(239,68,68,0.25); border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.65rem; font-weight: 700; }
+
+/* ═══ OCCUPANCY GRID ═══ */
+.occ-cell { width:100%; aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; transition:all 0.2s ease; cursor:default; border:1px solid var(--border-subtle); }
+.occ-cell:hover { transform:scale(1.08); z-index:2; }
+.occ-occupied { background:rgba(16,185,129,0.12); color:#34D399; border-color:rgba(16,185,129,0.3); }
+.occ-vacant   { background:rgba(239,68,68,0.1); color:#F87171; border-color:rgba(239,68,68,0.25); }
+.occ-expiring { background:rgba(245,158,11,0.1); color:#FBBF24; border-color:rgba(245,158,11,0.25); }
+.occ-centro   { background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.2); border-color:var(--border-subtle); }
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fade-in   { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slide-left { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 8px var(--accent-glow); } 50% { box-shadow: 0 0 20px var(--accent-glow); } }
+.animate-fade-in    { animation: fade-in 0.35s ease-out forwards; }
+.animate-slide-left { animation: slide-left 0.3s ease-out forwards; }
+
+/* ═══ AREA BACKGROUND ═══ */
+.area-bg-container::before { display: none !important; }
+
+/* ═══ LINE CLAMP ═══ */
+.line-clamp-1 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical; }
+.line-clamp-2 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; }
+
+/* ═══ DONUT SVG ═══ */
+.donut-segment { fill:none; stroke-width:28; transition:stroke-dashoffset 0.8s ease-out, opacity 0.2s; }
+.donut-segment:hover { opacity:0.75; stroke-width:32; }
+
+/* ═══ COMPACT CARD ═══ */
+.compact-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.compact-card:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+
+/* ═══ RECHARTS ═══ */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line { stroke: var(--border-subtle) !important; }
+.recharts-default-tooltip { background-color: var(--bg-sidebar) !important; border: 1px solid var(--border) !important; border-radius:6px !important; }
+.recharts-tooltip-item { color: var(--text-hi) !important; }
+
+/* ═══ DARQ TABLE ═══ */
+.darq-table thead tr { background: rgba(255,255,255,0.03); }
+.darq-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+.darq-table td, .darq-table th { font-size:0.7rem; padding:0.4rem 0.6rem; border-bottom:1px solid var(--border-subtle); }
+
+/* ═══ CHART TOOLTIP ═══ */
+.chart-tooltip {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-hi);
+  pointer-events: none;
+  position: absolute;
+  white-space: nowrap;
+  z-index: 50;
+}
+
+/* ═══ MODAL OVERLAY (for modals that don't use inline bg-black) ═══ */
+.modal-overlay {
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* ═══ COLLAPSIBLE DETAILS ═══ */
+details summary::-webkit-details-marker { display: none; }
+details summary { list-style: none; }
+details[open] > summary { border-bottom: 1px solid rgba(255,255,255,0.05); }
+details[open] > div, details[open] > .divide-y { animation: fade-in 0.25s ease-out; }

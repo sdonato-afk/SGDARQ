@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cleanup - Borrar registros sin propiedadId</title>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import { getFirestore, collection, query, getDocs, deleteDoc, doc, where, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+    const app = initializeApp({
+      apiKey: "AIzaSyAcyZAEyl1cd2vpIIWhEngQGyXaEQJjpS0",
+      authDomain: "sg-darq.firebaseapp.com",
+      projectId: "sg-darq",
+      storageBucket: "sg-darq.firebasestorage.app",
+      messagingSenderId: "174284213826",
+      appId: "1:174284213826:web:f389bf6ed3c19a1fabe7db"
+    });
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const log = (msg) => {
+      document.getElementById('log').textContent += msg + '\n';
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById('status').textContent = 'Autenticado como: ' + user.email;
+        document.getElementById('deleteBtn').disabled = false;
+      } else {
+        document.getElementById('status').textContent = 'No autenticado - abrí primero la app principal en otra pestaña para loguearte';
+      }
+    });
+
+    window.runCleanup = async () => {
+      document.getElementById('deleteBtn').disabled = true;
+      log('Buscando registros de Alquileres sin propiedadId...');
+      
+      try {
+        const q = query(
+          collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos'),
+          where('area', '==', 'Alquileres')
+        );
+        const snap = await getDocs(q);
+        log('Total registros Alquileres: ' + snap.size);
+
+        let toDelete = [];
+        snap.docs.forEach(d => {
+          const data = d.data();
+          if (!data.propiedadId || data.propiedadId === '') {
+            toDelete.push(d.id);
+          }
+        });
+
+        log('Registros SIN propiedadId (a borrar): ' + toDelete.length);
+        log('Registros CON propiedadId (conservar): ' + (snap.size - toDelete.length));
+
+        if (toDelete.length === 0) {
+          log('No hay registros para borrar.');
+          return;
+        }
+
+        log('Borrando...');
+        let count = 0;
+        for (const id of toDelete) {
+          await deleteDoc(doc(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos', id));
+          count++;
+          if (count % 50 === 0) log('  Progreso: ' + count + '/' + toDelete.length);
+        }
+
+        log('COMPLETADO! Borrados: ' + count + ' registros.');
+        log('Ahora podés re-importar desde el módulo Alquileres.');
+      } catch (e) {
+        log('ERROR: ' + e.message);
+      }
+    };
+    window.deleteByArea = async (area) => {
+      log('Buscando registros de ' + area + '...');
+      try {
+        const q = query(
+          collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos'),
+          where('area', '==', area)
+        );
+        const snap = await getDocs(q);
+        log('Total registros ' + area + ': ' + snap.size);
+        if (snap.size === 0) { log('No hay registros.'); return; }
+        log('Borrando...');
+        let count = 0;
+        for (const d of snap.docs) {
+          await deleteDoc(doc(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos', d.id));
+          count++;
+          if (count % 50 === 0) log('  Progreso: ' + count + '/' + snap.size);
+        }
+        log('COMPLETADO! Borrados: ' + count + ' registros de ' + area);
+      } catch (e) { log('ERROR: ' + e.message); }
+    };
+    window.fixDirectorio = async () => {
+      log('Buscando registros de Directorio sin directorId...');
+      try {
+        const q = query(
+          collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos'),
+          where('area', '==', 'Directorio')
+        );
+        const snap = await getDocs(q);
+        log('Total registros Directorio: ' + snap.size);
+        let fixed = 0, skipped = 0;
+        for (const d of snap.docs) {
+          const data = d.data();
+          if (!data.directorId && data.proveedor) {
+            await updateDoc(doc(db, 'artifacts', 'sg-darq', 'public', 'data', 'movimientos', d.id), { directorId: data.proveedor });
+            fixed++;
+            if (fixed % 50 === 0) log('  Progreso: ' + fixed);
+          } else { skipped++; }
+        }
+        log('COMPLETADO! Corregidos: ' + fixed + ', Ya tenían director: ' + skipped);
+      } catch (e) { log('ERROR: ' + e.message); }
+    };
+  </script>
+  <style>
+    body { background: #0a0f1e; color: #e2e8f0; font-family: monospace; padding: 40px; }
+    button { background: #ef4444; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; margin: 4px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    pre { background: #1a1a2e; padding: 16px; border-radius: 8px; margin-top: 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🧹 Cleanup - Borrar registros</h1>
+  <p id="status">Verificando autenticación...</p>
+  <br>
+  <button id="deleteBtn" onclick="runCleanup()" disabled>Borrar Alquileres sin propiedadId</button>
+  <button onclick="deleteByArea('Directorio')">🗑 Borrar TODO Directorio</button>
+  <button onclick="fixDirectorio()" style="background:#3b82f6">🔧 Fix Directorio (copiar proveedor → director)</button>
+  <button onclick="deleteByArea('Oficina')">🗑 Borrar TODO Oficina</button>
+  <button onclick="deleteByArea('Obras')">🗑 Borrar TODO Obras</button>
+  <button onclick="deleteByArea('Alquileres')">🗑 Borrar TODO Alquileres</button>
+  <pre id="log"></pre>
+</body>
+</html>
