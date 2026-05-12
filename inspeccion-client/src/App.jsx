@@ -3,6 +3,7 @@ import { Camera, Receipt, Box, ListTodo, ClipboardList } from 'lucide-react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './config/firebase';
+import { SearchableSelect } from '@darq/ui';
 import SubirGasto from './components/SubirGasto';
 import BitacoraVisual from './components/BitacoraVisual';
 import SubirSolicitud from './components/SubirSolicitud';
@@ -69,16 +70,13 @@ function MainApp({ user, onLogout }) {
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mb-6 bg-slate-900/50 p-4 rounded-3xl border border-white/5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2 block">Ubicación / Obra Actual</label>
-              <select 
+              <SearchableSelect 
                 value={selectedObraId} 
                 onChange={e => setSelectedObraId(e.target.value)}
+                options={obrasActivas.map(o => ({ value: o.id, label: o.nombre }))}
+                placeholder="-- Seleccione donde se encuentra --"
                 className="w-full bg-[#0f172a] border border-slate-700/50 rounded-2xl px-4 py-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-colors shadow-inner"
-              >
-                <option value="">-- Seleccione donde se encuentra --</option>
-                {obrasActivas.map(o => (
-                  <option key={o.id} value={o.id}>{o.nombre}</option>
-                ))}
-              </select>
+              />
             </div>
 
             {!selectedObraId ? (
