@@ -114,9 +114,24 @@ export async function dropboxCreateFolder(obraId, obraNombre) {
     const res = await dbxApi('files/create_folder_v2', { path, autorename: false });
     return res.metadata ?? res;
   } catch (e) {
-    // Si la carpeta ya existe no es un error
     if (e.message?.includes('conflict/folder')) return { path_display: path };
     throw e;
+  }
+}
+
+/**
+ * Crea una subcarpeta dentro de la carpeta raíz de la obra.
+ * Distinto de dropboxCreateFolder: no pasa el subfolder por obraFolderPath
+ * (que normalizaría el path y eliminaría el '/').
+ */
+export async function dropboxEnsureSubfolder(obraId, obraNombre, subfolder) {
+  const basePath = obraFolderPath(obraId, obraNombre);
+  const path = `${basePath}/${subfolder}`;
+  try {
+    await dbxApi('files/create_folder_v2', { path, autorename: false });
+  } catch (e) {
+    // Si ya existe, no es un error
+    if (!e.message?.includes('conflict/folder')) throw e;
   }
 }
 

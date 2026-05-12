@@ -3,7 +3,7 @@ import { Camera, Upload, ArrowLeft, Loader2, X, Plus } from 'lucide-react';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { SearchableSelect } from '@darq/ui';
 import { db } from '../config/firebase';
-import { dropboxUpload, dropboxCreateFolder, dropboxCreateSharedLink } from '../hooks/useDropbox';
+import { dropboxUpload, dropboxEnsureSubfolder, dropboxCreateSharedLink } from '../hooks/useDropbox';
 
 // Debe coincidir con la colección que usa obras-client
 const OBRAS_COL = 'obras';
@@ -50,8 +50,8 @@ export default function BitacoraVisual({ onBack, selectedObra }) {
     try {
       const obraSelected = selectedObra;
 
-      // Asegurar que la subcarpeta Bitacora exista
-      await dropboxCreateFolder(obraId, `${obraSelected?.nombre}/Bitacora`);
+      // Crear subcarpeta Bitacora/ dentro de la carpeta de la obra (path correcto)
+      await dropboxEnsureSubfolder(obraId, obraSelected?.nombre, 'Bitacora');
 
       // Subir fotos secuencialmente para no saturar la red del móvil
       for (let i = 0; i < fotos.length; i++) {
