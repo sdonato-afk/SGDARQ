@@ -6,16 +6,15 @@ import { db } from '../config/firebase';
 import { dropboxUpload, dropboxCreateSharedLink, dropboxCreateFolder } from '../hooks/useDropbox';
 
 const TIPOS_DOC = [
-  { id: 'plano',   label: 'Plano',        icon: Map,       color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-  { id: 'detalle', label: 'Detalle',      icon: FileText,  color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
-  { id: 'render',  label: 'Render/Imagen',icon: FileImage, color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
-  { id: 'otro',    label: 'Otro',         icon: Paperclip, color: '#64748b', bg: 'rgba(100,116,139,0.1)' },
+  { id: 'plano',         label: 'Planos',                 icon: Map,       color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+  { id: 'documentacion', label: 'Documentación de Obra',  icon: FileText,  color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
+  { id: 'otro',          label: 'Otros',                  icon: Paperclip, color: '#64748b', bg: 'rgba(100,116,139,0.1)' },
 ];
 
 export default function SubirDocumentacion({ onBack, user, selectedObra }) {
   const obraId = selectedObra?.id;
   
-  const [viewMode, setViewMode] = useState('subir'); // 'subir' o 'consultar'
+  const [viewMode, setViewMode] = useState('consultar'); // 'subir' o 'consultar'
   const [documentos, setDocumentos] = useState([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
 
@@ -149,22 +148,33 @@ export default function SubirDocumentacion({ onBack, user, selectedObra }) {
                 <p className="text-slate-400 text-sm">No hay documentos para esta obra.</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {documentos.map(doc => {
-                  const tipoInfo = TIPOS_DOC.find(t => t.id === doc.tipo) || TIPOS_DOC[3];
-                  const Icon = tipoInfo.icon;
+              <div className="space-y-6">
+                {TIPOS_DOC.map(tipoGrupo => {
+                  const docsDelGrupo = documentos.filter(d => d.tipo === tipoGrupo.id || (tipoGrupo.id === 'otro' && !TIPOS_DOC.some(t => t.id === d.tipo && t.id !== 'otro')));
+                  if (docsDelGrupo.length === 0) return null;
+                  
                   return (
-                    <a key={doc.id} href={doc.fileUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors active:scale-95">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: tipoInfo.bg, color: tipoInfo.color }}>
-                        <Icon size={20} />
+                    <div key={tipoGrupo.id}>
+                      <h3 className="text-[11px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: tipoGrupo.color }}>
+                        <tipoGrupo.icon size={14} />
+                        {tipoGrupo.label} ({docsDelGrupo.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {docsDelGrupo.map(doc => (
+                          <a key={doc.id} href={doc.fileUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors active:scale-95">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: tipoGrupo.bg, color: tipoGrupo.color }}>
+                              <tipoGrupo.icon size={20} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-200 truncate">{doc.titulo}</p>
+                              <p className="text-[10px] text-slate-500 truncate mt-0.5">{doc.nombreArchivo}</p>
+                            </div>
+                            <ExternalLink size={18} className="text-slate-500 shrink-0" />
+                          </a>
+                        ))}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-200 truncate">{doc.titulo}</p>
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{doc.nombreArchivo}</p>
-                      </div>
-                      <ExternalLink size={18} className="text-slate-500 shrink-0" />
-                    </a>
+                    </div>
                   );
                 })}
               </div>

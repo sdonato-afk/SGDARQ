@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, RefreshCw, Trash2, ImageOff, FolderOpen, CheckCircle } from 'lucide-react';
+import { Camera, Upload, RefreshCw, Trash2, ImageOff, FolderOpen, CheckCircle, X } from 'lucide-react';
 import { useFotos } from '../../hooks/useObras';
 import { useDropboxFotos } from '../../hooks/useDropboxFotos';
 
@@ -23,6 +23,7 @@ export default function TabBitacora({ obraId, obraNombre }) {
   const [descripcion, setDescripcion] = useState('');
   const [confirmId, setConfirmId]     = useState(null);
   const [dragOver, setDragOver]       = useState(false);
+  const [expandedFoto, setExpandedFoto] = useState(null);
   const [toast, setToast]             = useState(null); // { type: 'ok'|'err', msg }
   const fileRef = useRef();
 
@@ -182,12 +183,20 @@ export default function TabBitacora({ obraId, obraNombre }) {
             {fotos.map(f => (
               <div key={f.id} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
                 {/* Imagen */}
-                <div style={{ width: '100%', paddingTop: '75%', position: 'relative', background: 'rgba(0,0,0,0.3)' }}>
+                <div 
+                  className="cursor-pointer group/img"
+                  onClick={() => setExpandedFoto(f)}
+                  style={{ width: '100%', paddingTop: '75%', position: 'relative', background: 'rgba(0,0,0,0.3)' }}
+                >
                   <img
                     src={f.url} alt={f.descripcion}
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    className="transition-transform duration-300 group-hover/img:scale-105"
                     onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                   />
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', opacity: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 0.2s' }} className="group-hover/img:opacity-100">
+                    <span style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', padding: '8px 16px', borderRadius: 20, color: '#fff', fontSize: 12, fontWeight: 700 }}>Ampliar</span>
+                  </div>
                   <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'none', alignItems: 'center', justifyContent: 'center' }}>
                     <ImageOff size={24} color="#475569" />
                   </div>
@@ -222,6 +231,33 @@ export default function TabBitacora({ obraId, obraNombre }) {
             ))}
           </div>
         </>
+      )}
+
+      {/* Lightbox / Visor de Foto Expandida */}
+      {expandedFoto && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99999,
+          background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{ position: 'absolute', top: 20, right: 30, display: 'flex', gap: 16 }}>
+            <a href={expandedFoto.url} target="_blank" rel="noopener noreferrer"
+               style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '10px 16px', borderRadius: 12, textDecoration: 'none', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+               Descargar Original
+            </a>
+            <button onClick={() => setExpandedFoto(null)}
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X size={24} />
+            </button>
+          </div>
+          
+          <img src={expandedFoto.url} alt={expandedFoto.descripcion} style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }} />
+          
+          <div style={{ marginTop: 24, textAlign: 'center', maxWidth: 600 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{expandedFoto.descripcion}</div>
+            <div style={{ fontSize: 13, color: '#94a3b8' }}>Subido el {expandedFoto.fecha}</div>
+          </div>
+        </div>
       )}
 
       <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>

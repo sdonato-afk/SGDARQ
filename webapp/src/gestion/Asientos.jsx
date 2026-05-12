@@ -107,7 +107,7 @@ export default function Asientos({
   };
 
   // ── Exportar a CSV ──
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (asientosData.length === 0) return toast.info('No hay asientos para exportar.');
     
     const headers = colDefs.map(c => c.label).join(',');
@@ -122,15 +122,36 @@ export default function Asientos({
       }).join(',');
     });
     
-    // Add BOM for Excel UTF-8 compatibility
-    const blob = new Blob(['\ufeff' + [headers, ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `asientos_export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvContent = '\ufeff' + [headers, ...rows].join('\n');
+    const fileName = `asientos_export_${new Date().toISOString().slice(0,10)}.csv`;
+
+    try {
+      if ('showSaveFilePicker' in window) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{ description: 'Archivo CSV', accept: { 'text/csv': ['.csv'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(csvContent);
+        await writable.close();
+        toast.success('Archivo guardado correctamente');
+      } else {
+        // Fallback for older browsers
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Error al guardar:', err);
+        toast.error('Error al guardar el archivo');
+      }
+    }
   };
 
   // ── Render ──

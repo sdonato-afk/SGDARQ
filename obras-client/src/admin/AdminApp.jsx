@@ -88,8 +88,9 @@ export default function AdminApp({ user, userRole, onLogout }) {
   const selectObra = (id) => {
     setSelectedObraId(id);
     setObraDropdownOpen(false);
-    setActiveTab('resumen');
-    window.history.pushState({ tab: 'resumen', obraId: id }, '');
+    const defaultTab = userRole === 'admin_general' ? 'requerimientos' : 'resumen';
+    setActiveTab(defaultTab);
+    window.history.pushState({ tab: defaultTab, obraId: id }, '');
   };
 
   // Badge dinámico en tab Requerimientos
@@ -113,15 +114,19 @@ export default function AdminApp({ user, userRole, onLogout }) {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // ── Tabs agrupados (label dinámico según conteo) ──────────────────
+  // ── Tabs agrupados (label dinámico según conteo y filtrado por rol) ──────────────────
+  const allowedTabs = userRole === 'admin_general'
+    ? TABS.filter(t => !['resumen', 'honorarios', 'rentabilidad', 'gastos_cliente'].includes(t.id))
+    : TABS;
+
   const buildTabs = (tabs) => tabs.map(t =>
     t.id === 'requerimientos' && reqCount > 0
       ? { ...t, label: `Requerimientos (${reqCount})` }
       : t
   );
-  const tabsSeguimiento = buildTabs(TABS.filter(t => t.group === 'seguimiento'));
-  const tabsAdmin       = buildTabs(TABS.filter(t => t.group === 'admin'));
-  const tabsSoporte     = buildTabs(TABS.filter(t => t.group === 'sup'));
+  const tabsSeguimiento = buildTabs(allowedTabs.filter(t => t.group === 'seguimiento'));
+  const tabsAdmin       = buildTabs(allowedTabs.filter(t => t.group === 'admin'));
+  const tabsSoporte     = buildTabs(allowedTabs.filter(t => t.group === 'sup'));
   const enInicio    = activeTab === 'inicio';
 
   const extraContent = (

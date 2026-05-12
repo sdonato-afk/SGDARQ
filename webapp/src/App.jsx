@@ -56,7 +56,8 @@ import {
   ChevronLeft,
   Bell,
   Receipt,
-  Settings 
+  Settings,
+  Shield
 } from 'lucide-react';
 import ReconciliarModal from './components/ReconciliarModal';
 import ModalCobro from './components/ModalCobro';
@@ -98,6 +99,7 @@ import Obras from './gestion/Obras';
 import Propiedades from './gestion/Propiedades';
 import Asientos from './gestion/Asientos';
 import Tesoreria from './gestion/Tesoreria';
+import UsuariosConfig from './admin/UsuariosConfig';
 import Contabilidad from './contabilidad/Contabilidad';
 import { DarqSidebar } from '@darq/ui';
 
@@ -269,6 +271,7 @@ function App() {
     { id: 'Area_Alquileres', icon: Building2,       label: 'Alquileres',  type: 'area',  roles: ['superadmin', 'admin_alquileres', 'director'] },
     { id: 'Area_Oficina',    icon: Briefcase,       label: 'Oficina',     type: 'area',  roles: ['superadmin', 'director'] },
     { id: 'Area_Directorio', icon: Landmark,        label: 'Directorio',  type: 'area',  roles: ['superadmin', 'director'] },
+    { id: 'Accesos',         icon: Shield,          label: 'Accesos',     type: 'main',  roles: ['superadmin', 'director'] },
     { id: 'Configuracion',   icon: Settings,        label: 'Configuración', type: 'main', roles: ['superadmin'] }
   ];
   const [isDbOpen, setIsDbOpen] = useState(false);
@@ -400,6 +403,29 @@ function App() {
               {isLoggingIn ? 'Verificando...' : 'Entrar al Sistema'}
             </button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (userRole === 'inspector' || userRole === 'deposito') {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(244,63,94,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
+        <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: 420, borderRadius: 24, padding: '2.5rem', position: 'relative', zIndex: 10, textAlign: 'center' }}>
+          <AlertTriangle className="text-rose-500 mx-auto mb-4" size={48} />
+          <h1 style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 8 }}>Acceso Denegado</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.5 }}>
+            Tu usuario ({userData?.nombre || email}) tiene rol de <strong>{userRole === 'inspector' ? 'Inspector de Obra' : 'Depósito'}</strong>.<br/><br/>
+            Este portal es exclusivo para administración central. Por favor, utilizá la App Móvil.
+          </p>
+          <a href={import.meta.env.DEV ? 'http://localhost:5176' : 'https://sg-darq.web.app/inspeccion/'}
+             style={{ display: 'inline-block', width: '100%', padding: '14px', borderRadius: 14, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#fff', background: 'var(--rose, #f43f5e)', textDecoration: 'none', transition: 'all 0.2s', marginBottom: 12 }}>
+            Ir a la App Móvil
+          </a>
+          <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', padding: 8 }}>
+            Cerrar Sesión
+          </button>
         </div>
       </div>
     );
@@ -707,6 +733,10 @@ function App() {
               onNuevoContrato={canEdit ? () => setIsModalContratoOpen(true) : undefined}
               userRole={userRole}
             />
+          )}
+
+          { activeTab === 'Accesos' && (
+             <UsuariosConfig />
           )}
 
           {activeTab === 'Configuracion' && (

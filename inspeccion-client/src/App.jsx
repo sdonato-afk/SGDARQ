@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Receipt, Box, ListTodo, ClipboardList } from 'lucide-react';
+import { Camera, Receipt, Box, ListTodo, ClipboardList, ChevronDown, ArrowLeft } from 'lucide-react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './config/firebase';
 import { SearchableSelect } from '@darq/ui';
-import SubirGasto from './components/SubirGasto';
 import BitacoraVisual from './components/BitacoraVisual';
 import SubirSolicitud from './components/SubirSolicitud';
 import SubirDocumentacion from './components/SubirDocumentacion';
@@ -29,18 +28,40 @@ function MainApp({ user, onLogout }) {
 
   useEffect(() => {
     if (!user) return;
-    // Traer todas las solicitudes del inspector logueado (todos los estados para tener historial completo)
-    const q = query(
+    const qReq = query(
       collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'requerimientos'),
       where('solicitanteUid', '==', user.uid)
     );
-    const unsub = onSnapshot(q, snap => {
-      const lista = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      setSolicitudesPendientes(lista);
+    const qGas = query(
+      collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'inbox_movimientos'),
+      where('solicitanteUid', '==', user.uid)
+    );
+    
+    let listReq = [];
+    let listGas = [];
+    
+    const updateCombined = () => {
+      const combined = [...listReq, ...listGas].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      setSolicitudesPendientes(combined);
+    };
+
+    const unsubReq = onSnapshot(qReq, snap => {
+      listReq = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      updateCombined();
     }, () => {});
-    return unsub;
+
+    const unsubGas = onSnapshot(qGas, snap => {
+      // Forzamos el tipo 'gasto' para la UI
+      listGas = snap.docs.map(d => ({ 
+        id: d.id, 
+        ...d.data(), 
+        tipo: 'gasto', 
+        descripcion: `Rendición de Gasto${d.data().proveedor ? ' - ' + d.data().proveedor : ''}` 
+      }));
+      updateCombined();
+    }, () => {});
+
+    return () => { unsubReq(); unsubGas(); };
   }, [user]);
 
   const pendienteCount = selectedObraId
@@ -89,15 +110,6 @@ function MainApp({ user, onLogout }) {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 mt-2">
-                <button onClick={() => setView('gasto')}
-                  className="glass-card relative overflow-hidden flex flex-col items-center justify-center p-8 gap-4 active:scale-95 transition-transform rounded-3xl">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/[0.15] rounded-full blur-[32px] pointer-events-none" />
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center z-10" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                    <Receipt size={32} color="#818cf8" />
-                  </div>
-                  <span className="font-black text-[11px] uppercase tracking-widest text-slate-200 z-10">Subir Gasto</span>
-                </button>
-
                 <button onClick={() => setView('bitacora')}
                   className="glass-card relative overflow-hidden flex flex-col items-center justify-center p-8 gap-4 active:scale-95 transition-transform rounded-3xl">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.15] rounded-full blur-[32px] pointer-events-none" />
@@ -131,7 +143,7 @@ function MainApp({ user, onLogout }) {
                 </button>
                 
                 <button onClick={() => setView('documentacion')}
-                  className="glass-card relative overflow-hidden flex flex-col items-center justify-center p-8 gap-4 active:scale-95 transition-transform rounded-3xl col-span-2">
+                  className="glass-card relative overflow-hidden flex flex-col items-center justify-center p-8 gap-4 active:scale-95 transition-transform rounded-3xl">
                   <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/[0.15] rounded-full blur-[32px] pointer-events-none" />
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center z-10" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
@@ -143,7 +155,7 @@ function MainApp({ user, onLogout }) {
           </div>
         )}
 
-        {view === 'gasto'         && <SubirGasto         onBack={() => setView('home')} user={user} selectedObra={selectedObra} />}
+
         {view === 'bitacora'      && <BitacoraVisual     onBack={() => setView('home')} selectedObra={selectedObra} />}
         {view === 'solicitud'     && <SubirSolicitud     onBack={() => setView('home')} user={user} selectedObra={selectedObra} />}
         {view === 'documentacion' && <SubirDocumentacion onBack={() => setView('home')} user={user} selectedObra={selectedObra} />}
@@ -153,30 +165,163 @@ function MainApp({ user, onLogout }) {
   );
 }
 
-// ── Lista de solicitudes del inspector (historial completo con estado) ───────────
+// ── COMPONENTE ACORDEÓN PARA CADA SOLICITUD ──────────────────────────────────────────
+function PendienteItem({ s, est, tipoColor }) {
+  const [expanded, setExpanded] = useState(false);
+  const items = s.items || [];
+  
+  return (
+    <div className="rounded-2xl border transition-all duration-300 overflow-hidden"
+      style={{ 
+        background: expanded ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)', 
+        borderColor: est.color + '40',
+        transform: expanded ? 'scale(1.01)' : 'scale(1)'
+      }}>
+      
+      {/* Cabecera (siempre visible) */}
+      <div className="p-4 flex flex-col gap-2 cursor-pointer active:bg-white/5" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center justify-between gap-2">
+          {s.urgencia === 'urgente' && <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"/> Urgente</span>}
+          <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg ml-auto uppercase tracking-wider" style={{ background: est.bg, color: est.color }}>
+            {est.label}
+          </span>
+        </div>
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-bold text-slate-200 text-sm leading-snug flex-1">{s.descripcion}</p>
+          <button className={`p-1.5 rounded-full bg-white/5 text-slate-400 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`}>
+            <ChevronDown size={16} />
+          </button>
+        </div>
+        
+        {/* Info resumen */}
+        {(s.tipo === 'pago' || s.tipo === 'gasto') && s.proveedor && (
+          <p className="text-xs text-slate-400 font-medium">💸 {s.proveedor} · {s.moneda === 'USD' ? 'u$d ' : '$ '}{(s.monto || 0).toLocaleString('es-AR')}</p>
+        )}
+      </div>
+
+      {/* Contenido Desplegable (Acordeón) */}
+      <div className={`grid transition-all duration-300 ease-in-out ${expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="overflow-hidden">
+          <div className="p-4 pt-0 border-t border-white/5 mt-2 space-y-3">
+            
+            {/* Lista de Ítems */}
+            {items.length > 0 && (
+              <div>
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Ítems solicitados</p>
+                <ul className="space-y-1.5">
+                  {items.map((it, idx) => (
+                    <li key={idx} className="text-xs text-slate-300 bg-black/20 p-2.5 rounded-xl border border-white/5 flex gap-2">
+                      <span className="text-indigo-400 font-bold opacity-50">{idx + 1}.</span>
+                      <span className="flex-1">{it.descripcion}</span>
+                      {it.cantidad && <span className="font-black text-slate-400 bg-white/5 px-2 py-0.5 rounded-md">{it.cantidad} {it.unidad}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Foto de Referencia / Comprobante */}
+            {s.fotoUrl && (
+              <div>
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Archivo Adjunto</p>
+                <a href={s.fotoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 bg-indigo-500/10 px-3 py-2 rounded-xl active:scale-95 transition-transform">
+                  <Camera size={14} /> Ver Foto / Comprobante
+                </a>
+              </div>
+            )}
+
+            {/* Nota */}
+            {s.nota && (
+              <div>
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Nota</p>
+                <p className="text-xs text-slate-400 italic bg-black/20 p-2.5 rounded-xl border border-white/5">{s.nota}</p>
+              </div>
+            )}
+
+            {/* Logs de estado histórico */}
+            {s.tipo === 'pago' && s.ejecutadoFecha && (
+              <p className="text-[10px] text-emerald-400/80 font-bold bg-emerald-500/10 p-2 rounded-lg">
+                ✓ Pagado el {new Date(s.ejecutadoFecha).toLocaleDateString('es-AR')}
+                {s.monto_real ? ` · $ ${s.monto_real.toLocaleString('es-AR')}` : ''}
+              </p>
+            )}
+            {s.estado === 'rechazado' && s.motivoRechazo && (
+              <p className="text-[10px] text-rose-400/80 font-bold bg-rose-500/10 p-2 rounded-lg">Motivo del rechazo: {s.motivoRechazo}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Lista de solicitudes del inspector (Agrupada por tipo) ───────────
 function PendientesList({ solicitudes, onBack }) {
-  const TIPO_COLOR = { material: '#fbbf24', servicio: '#818cf8', pago: '#34d399' };
+  const TIPO_COLOR = { material: '#fbbf24', servicio: '#818cf8', pago: '#34d399', gasto: '#f43f5e' };
+  const TIPO_LABEL = { material: 'Materiales', servicio: 'Servicios', pago: 'Pagos a Proveedores', gasto: 'Rendiciones de Gastos' };
 
   const ESTADO_DISPLAY = {
     pendiente:            { label: 'Pendiente',       color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
     pendiente_aprobacion: { label: 'Esp. aprobación', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-    aprobado:             { label: '\u2713 Aprobado',    color: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
-    ejecutado:            { label: '\u2713 Pagado',      color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
-    comprado:             { label: 'En proceso',     color: '#38bdf8', bg: 'rgba(56,189,248,0.12)'  },
-    entregado:            { label: '\u2713 Entregado',   color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+    aprobado:             { label: '\u2713 Aprobado', color: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
+    comprado:             { label: 'Comprado',        color: '#38bdf8', bg: 'rgba(56,189,248,0.12)'  }, // en tránsito
+    entregado_deposito:   { label: 'En Depósito',     color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
+    entregado_obra:       { label: '\u2713 En Obra',  color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+    ejecutado:            { label: '\u2713 Pagado',   color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+    entregado:            { label: '\u2713 Entregado',color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
     rechazado:            { label: 'Rechazado',       color: '#f87171', bg: 'rgba(248,113,113,0.12)' },
   };
 
-  const activas = solicitudes.filter(s => ['pendiente', 'pendiente_aprobacion', 'aprobado', 'comprado'].includes(s.estado));
-  const resueltas = solicitudes.filter(s => ['ejecutado', 'entregado', 'rechazado'].includes(s.estado));
+  // Filtrar y agrupar
+  // Excluimos las finalizadas de la vista principal para no ensuciar, salvo que hagamos un tab de historial. 
+  // Por ahora las dejamos, pero agrupadas por tipo.
+  const activas = solicitudes.filter(s => !['ejecutado', 'entregado', 'entregado_obra', 'rechazado'].includes(s.estado));
+  const resueltas = solicitudes.filter(s => ['ejecutado', 'entregado', 'entregado_obra', 'rechazado'].includes(s.estado));
+
+  const agruparPorTipo = (lista) => {
+    return lista.reduce((acc, s) => {
+      const t = s.tipo || 'otro';
+      if (!acc[t]) acc[t] = [];
+      acc[t].push(s);
+      return acc;
+    }, {});
+  };
+
+  const activasAgrupadas = agruparPorTipo(activas);
+  const resueltasAgrupadas = agruparPorTipo(resueltas);
+
+  const renderGrupo = (grupos, titulo) => {
+    if (Object.keys(grupos).length === 0) return null;
+    return (
+      <div className="space-y-6 mt-4">
+        {titulo && <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] px-2 text-center">{titulo}</h3>}
+        {Object.entries(grupos).map(([tipo, items]) => (
+          <div key={tipo} className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px bg-white/10 flex-1"/>
+              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+                style={{ color: TIPO_COLOR[tipo] || '#64748b', background: `${TIPO_COLOR[tipo] || '#64748b'}15` }}>
+                {TIPO_LABEL[tipo] || tipo} ({items.length})
+              </span>
+              <div className="h-px bg-white/10 flex-1"/>
+            </div>
+            <div className="space-y-3">
+              {items.map(s => {
+                const est = ESTADO_DISPLAY[s.estado] || ESTADO_DISPLAY.pendiente;
+                return <PendienteItem key={s.id} s={s} est={est} tipoColor={TIPO_COLOR[s.tipo]} />;
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-md mx-auto pb-safe">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onBack} className="p-2 -ml-2 rounded-full active:bg-slate-800 text-slate-400">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
-          </svg>
+          <ArrowLeft size={24} />
         </button>
         <h2 className="text-xl font-bold text-slate-100">Mis Solicitudes</h2>
       </div>
@@ -187,72 +332,9 @@ function PendientesList({ solicitudes, onBack }) {
           <p className="font-bold">Sin solicitudes enviadas</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {/* Activas */}
-          {activas.length > 0 && (
-            <>
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">En proceso</p>
-              {activas.map(s => {
-                const est = ESTADO_DISPLAY[s.estado] || ESTADO_DISPLAY.pendiente;
-                return (
-                  <div key={s.id} className="p-4 rounded-2xl border"
-                    style={{ background: 'rgba(255,255,255,0.03)', borderColor: est.color + '40' }}>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded-lg"
-                        style={{ background: `${TIPO_COLOR[s.tipo] || '#64748b'}20`, color: TIPO_COLOR[s.tipo] || '#64748b' }}>
-                        {s.tipo}
-                      </span>
-                      {s.urgencia === 'urgente' && <span className="text-xs font-black text-rose-400">⚡ Urgente</span>}
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-lg ml-auto"
-                        style={{ background: est.bg, color: est.color }}>
-                        {est.label}
-                      </span>
-                    </div>
-                    <p className="font-bold text-slate-200 text-sm mb-1">{s.descripcion}</p>
-                    {s.tipo === 'pago' && s.proveedor && (
-                      <p className="text-xs text-slate-400 mt-1">💸 {s.proveedor} · {s.moneda === 'USD' ? 'u$d ' : '$ '}{(s.monto || 0).toLocaleString('es-AR')}</p>
-                    )}
-                    {s.estado === 'aprobado' && (
-                      <div className="mt-2 text-xs font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1.5 rounded-lg">
-                        ✓ Aprobado — en espera de ejecución de pago
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          )}
-
-          {/* Resueltas */}
-          {resueltas.length > 0 && (
-            <>
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest px-1 mt-4">Historial</p>
-              {resueltas.map(s => {
-                const est = ESTADO_DISPLAY[s.estado] || ESTADO_DISPLAY.pendiente;
-                return (
-                  <div key={s.id} className="p-4 rounded-2xl"
-                    style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.05)', opacity: 0.8 }}>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="font-bold text-slate-300 text-sm flex-1 truncate">{s.descripcion}</p>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-lg shrink-0"
-                        style={{ background: est.bg, color: est.color }}>
-                        {est.label}
-                      </span>
-                    </div>
-                    {s.tipo === 'pago' && s.ejecutadoFecha && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        Pagado el {new Date(s.ejecutadoFecha).toLocaleDateString('es-AR')}
-                        {s.monto_real ? ` · $ ${s.monto_real.toLocaleString('es-AR')}` : ''}
-                      </p>
-                    )}
-                    {s.estado === 'rechazado' && s.motivoRechazo && (
-                      <p className="text-xs text-rose-400 mt-1">Motivo: {s.motivoRechazo}</p>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          )}
+        <div className="space-y-8">
+          {renderGrupo(activasAgrupadas, "En Proceso")}
+          {renderGrupo(resueltasAgrupadas, "Historial (Resueltas)")}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft, Plus, Trash2, Loader2, SendHorizonal,
-  Package, Wrench, Camera, X, DollarSign
+  Package, Wrench, Camera, X, DollarSign, Receipt
 } from 'lucide-react';
 import { collection, getDocs, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { SearchableSelect } from '@darq/ui';
@@ -12,6 +12,7 @@ const TIPOS = [
   { id: 'material', label: 'Materiales', icon: Package,    color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.25)' },
   { id: 'servicio', label: 'Servicios',  icon: Wrench,     color: '#818cf8', bg: 'rgba(129,140,248,0.1)', border: 'rgba(129,140,248,0.25)' },
   { id: 'pago',     label: 'Pago',       icon: DollarSign, color: '#34d399', bg: 'rgba(52,211,153,0.1)',  border: 'rgba(52,211,153,0.25)' },
+  { id: 'gasto',    label: 'Rendición',  icon: Receipt,    color: '#f43f5e', bg: 'rgba(244,63,94,0.1)',   border: 'rgba(244,63,94,0.25)' },
 ];
 
 const URGENCIAS = [
@@ -53,9 +54,16 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!obraId || !descripcion.trim()) {
-      alert('Completá la obra y la descripción.');
-      return;
+    if (tipo === 'gasto') {
+      if (!obraId || !monto || !foto) {
+        alert('Faltan datos obligatorios (Obra, Monto o Foto del Ticket).');
+        return;
+      }
+    } else {
+      if (!obraId || !descripcion.trim()) {
+        alert('Completá la obra y la descripción.');
+        return;
+      }
     }
     setSubiendo(true);
     try {
@@ -63,40 +71,63 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
       let fotoUrl = null;
       if (foto) {
         await dropboxCreateFolder(obraId, obraSelected?.nombre);
-        const meta = await dropboxUpload(obraId, obraSelected?.nombre, foto, 'Solicitud_ref', 'Solicitudes');
+        const prefijo = tipo === 'gasto' ? `Ticket_${proveedor || 'Gasto'}` : 'Solicitud_ref';
+        const carpeta = tipo === 'gasto' ? undefined : 'Solicitudes'; // gastos van a la raíz de la obra como antes
+        const meta = await dropboxUpload(obraId, obraSelected?.nombre, foto, prefijo, carpeta);
         fotoUrl = await dropboxCreateSharedLink(meta.path_display);
       }
-      const itemsValidos = items.filter(it => it.descripcion.trim());
-      const docData = {
-        tipo,
-        obraId,
-        obraNombre:        obraSelected?.nombre || '',
-        descripcion:       descripcion.trim(),
-        items:             tipo !== 'pago' ? itemsValidos : [],
-        urgencia,
-        nota:              nota.trim(),
-        fotoUrl,
-        estado:            tipo === 'pago' ? 'pendiente_aprobacion' : 'pendiente',
-        solicitanteUid:    user?.uid    || '',
-        solicitanteEmail:  user?.email  || '',
-        solicitanteNombre: user?.displayName || user?.email?.split('@')[0] || 'Campo',
-        createdAt:         serverTimestamp(),
-        updatedAt:         serverTimestamp(),
-        resolvedAt:        null,
-        movimientoId:      null,
-      };
-      // Campos adicionales para solicitud de pago
-      if (tipo === 'pago') {
-        docData.proveedor = proveedor.trim();
-        docData.monto = parseFloat(monto) || 0;
-        docData.moneda = moneda;
-        docData.requiereAprobacion = true;
-        docData.aprobadoPor = null;
-        docData.aprobadoFecha = null;
-        docData.ejecutadoPor = null;
-        docData.ejecutadoFecha = null;
+
+      if (tipo === 'gasto') {
+        // Guardar en inbox_movimientos (Ticket ya gastado/pagado)
+        await addDoc(collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'inbox_movimientos'), {
+          tipo: 'gasto_obra',
+          obraId,
+          obraNombre: obraSelected?.nombre,
+          monto: parseFloat(monto) || 0,
+          moneda: moneda,
+          proveedor: proveedor.trim(),
+          nota: nota.trim(),
+          fotoUrl: fotoUrl,
+          estado: 'pendiente',
+          createdAt: serverTimestamp(),
+          origen: 'inspeccion-client',
+          solicitanteUid: user?.uid || '',
+        });
+      } else {
+        // Guardar en requerimientos (Solicitud a futuro)
+        const itemsValidos = items.filter(it => it.descripcion.trim());
+        const docData = {
+          tipo,
+          obraId,
+          obraNombre:        obraSelected?.nombre || '',
+          descripcion:       descripcion.trim(),
+          items:             tipo !== 'pago' ? itemsValidos : [],
+          urgencia,
+          nota:              nota.trim(),
+          fotoUrl,
+          estado:            tipo === 'pago' ? 'pendiente_aprobacion' : 'pendiente',
+          solicitanteUid:    user?.uid    || '',
+          solicitanteEmail:  user?.email  || '',
+          solicitanteNombre: user?.displayName || user?.email?.split('@')[0] || 'Campo',
+          createdAt:         serverTimestamp(),
+          updatedAt:         serverTimestamp(),
+          resolvedAt:        null,
+          movimientoId:      null,
+        };
+        // Campos adicionales para solicitud de pago
+        if (tipo === 'pago') {
+          docData.proveedor = proveedor.trim();
+          docData.monto = parseFloat(monto) || 0;
+          docData.moneda = moneda;
+          docData.requiereAprobacion = true;
+          docData.aprobadoPor = null;
+          docData.aprobadoFecha = null;
+          docData.ejecutadoPor = null;
+          docData.ejecutadoFecha = null;
+        }
+        await addDoc(collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'requerimientos'), docData);
       }
-      await addDoc(collection(db, 'artifacts', 'sg-darq', 'public', 'data', 'requerimientos'), docData);
+      
       setExito(true);
       setTimeout(() => onBack(), 2500);
     } catch (err) {
@@ -136,16 +167,18 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
         {/* TIPO */}
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tipo</label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             {TIPOS.map(t => {
               const Icon = t.icon;
               const active = tipo === t.id;
               return (
                 <button key={t.id} type="button" onClick={() => setTipo(t.id)}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all active:scale-95"
-                  style={{ background: active ? t.bg : 'rgba(255,255,255,0.03)', border: `2px solid ${active ? t.border : 'rgba(255,255,255,0.06)'}` }}>
-                  <Icon size={28} color={active ? t.color : '#475569'} />
-                  <span className="text-sm font-bold" style={{ color: active ? t.color : '#64748b' }}>{t.label}</span>
+                  className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95"
+                  style={{ background: active ? t.bg : 'rgba(255,255,255,0.03)', border: `1.5px solid ${active ? t.border : 'rgba(255,255,255,0.06)'}` }}>
+                  <Icon size={24} color={active ? t.color : '#475569'} />
+                  <span className="text-[9px] font-black uppercase tracking-wider text-center" style={{ color: active ? t.color : '#64748b', lineHeight: 1.1 }}>
+                    {t.label}
+                  </span>
                 </button>
               );
             })}
@@ -160,22 +193,55 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
           </div>
         </div>
 
-        {/* DESCRIPCIÓN */}
-        <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Descripción General *</label>
-          <input type="text" required
-            placeholder={tipo === 'material' ? 'Ej: Materiales para losa' : 'Ej: Plomero baño principal'}
-            value={descripcion} onChange={e => setDescripcion(e.target.value)}
-            className="w-full p-4 rounded-xl glass-input font-medium" />
-        </div>
+        {/* FOTO DEL TICKET (obligatoria para gasto, opcional para otros va abajo) */}
+        {tipo === 'gasto' && (
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Foto del Comprobante *</label>
+            {fotoPreview ? (
+              <div className="relative rounded-2xl overflow-hidden border-2 border-rose-500/50 aspect-[4/3] bg-black">
+                <img src={fotoPreview} alt="Preview" className="w-full h-full object-cover" />
+                <button 
+                  type="button"
+                  onClick={() => { setFoto(null); setFotoPreview(null); }}
+                  className="absolute top-3 right-3 bg-black/60 backdrop-blur text-white p-2 rounded-full active:scale-95"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="w-full aspect-[4/3] rounded-2xl flex flex-col items-center justify-center gap-3 border-2 border-dashed border-rose-500/30 bg-rose-500/5 active:bg-rose-500/10 transition-colors"
+              >
+                <Camera size={48} className="text-rose-400" />
+                <span className="font-bold text-rose-400">Tomar Foto</span>
+              </button>
+            )}
+            <input type="file" accept="image/*" capture="environment" ref={fileRef} className="hidden" onChange={handleFoto} />
+          </div>
+        )}
 
-        {/* PROVEEDOR + MONTO (solo para tipo pago) */}
-        {tipo === 'pago' && (
+        {/* DESCRIPCIÓN (Oculto para Rendición de Gasto, ya que usan 'nota' y 'proveedor' y no hay descripción general) */}
+        {tipo !== 'gasto' && (
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Descripción General *</label>
+            <input type="text" required={tipo !== 'gasto'}
+              placeholder={tipo === 'material' ? 'Ej: Materiales para losa' : 'Ej: Plomero baño principal'}
+              value={descripcion} onChange={e => setDescripcion(e.target.value)}
+              className="w-full p-4 rounded-xl glass-input font-medium" />
+          </div>
+        )}
+
+        {/* PROVEEDOR + MONTO (para tipo pago o gasto) */}
+        {(tipo === 'pago' || tipo === 'gasto') && (
           <>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Proveedor / Contratista *</label>
-              <input type="text" required
-                placeholder="Ej: Juan Pérez (Electricista)"
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                {tipo === 'gasto' ? 'Proveedor (Opcional)' : 'Proveedor / Contratista *'}
+              </label>
+              <input type="text" required={tipo === 'pago'}
+                placeholder={tipo === 'gasto' ? 'Ej: Easy, Corralón X' : 'Ej: Juan Pérez (Electricista)'}
                 value={proveedor} onChange={e => setProveedor(e.target.value)}
                 className="w-full p-4 rounded-xl glass-input font-medium" />
             </div>
@@ -206,7 +272,7 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
         )}
 
         {/* ITEMS (solo para material/servicio) */}
-        {tipo !== 'pago' && <div>
+        {(tipo === 'material' || tipo === 'servicio') && <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               {tipo === 'material' ? 'Lista de Materiales' : 'Detalle del Servicio'}
@@ -258,45 +324,49 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
           </div>
         </div>}
 
-        {/* URGENCIA */}
-        <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Urgencia</label>
-          <div className="flex gap-3">
-            {URGENCIAS.map(u => (
-              <button key={u.id} type="button" onClick={() => setUrgencia(u.id)}
-                className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-95"
-                style={{
-                  background: urgencia === u.id ? `${u.color}20` : 'rgba(255,255,255,0.03)',
-                  border: `2px solid ${urgencia === u.id ? u.color : 'rgba(255,255,255,0.06)'}`,
-                  color: urgencia === u.id ? u.color : '#475569',
-                }}>
-                {u.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* FOTO REFERENCIA */}
-        <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Foto de Referencia (Opcional)</label>
-          {fotoPreview ? (
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 aspect-[4/3] bg-black">
-              <img src={fotoPreview} alt="Ref" className="w-full h-full object-cover" />
-              <button type="button" onClick={() => { setFoto(null); setFotoPreview(null); }}
-                className="absolute top-3 right-3 bg-black/60 backdrop-blur text-white p-2 rounded-full">
-                <X size={18} />
-              </button>
+        {/* URGENCIA (oculta para rendición de gastos) */}
+        {tipo !== 'gasto' && (
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Urgencia</label>
+            <div className="flex gap-3">
+              {URGENCIAS.map(u => (
+                <button key={u.id} type="button" onClick={() => setUrgencia(u.id)}
+                  className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-95"
+                  style={{
+                    background: urgencia === u.id ? `${u.color}20` : 'rgba(255,255,255,0.03)',
+                    border: `2px solid ${urgencia === u.id ? u.color : 'rgba(255,255,255,0.06)'}`,
+                    color: urgencia === u.id ? u.color : '#475569',
+                  }}>
+                  {u.label}
+                </button>
+              ))}
             </div>
-          ) : (
-            <button type="button" onClick={() => fileRef.current?.click()}
-              className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 border-2 border-dashed active:opacity-70"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-              <Camera size={22} className="text-slate-500" />
-              <span className="text-sm font-bold text-slate-500">Agregar foto</span>
-            </button>
-          )}
-          <input type="file" accept="image/*" capture="environment" ref={fileRef} className="hidden" onChange={handleFoto} />
-        </div>
+          </div>
+        )}
+
+        {/* FOTO REFERENCIA (Opcional, solo para material/servicio/pago) */}
+        {tipo !== 'gasto' && (
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Foto de Referencia (Opcional)</label>
+            {fotoPreview ? (
+              <div className="relative rounded-2xl overflow-hidden border border-white/10 aspect-[4/3] bg-black">
+                <img src={fotoPreview} alt="Ref" className="w-full h-full object-cover" />
+                <button type="button" onClick={() => { setFoto(null); setFotoPreview(null); }}
+                  className="absolute top-3 right-3 bg-black/60 backdrop-blur text-white p-2 rounded-full">
+                  <X size={18} />
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => fileRef.current?.click()}
+                className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 border-2 border-dashed active:opacity-70"
+                style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+                <Camera size={22} className="text-slate-500" />
+                <span className="text-sm font-bold text-slate-500">Agregar foto</span>
+              </button>
+            )}
+            <input type="file" accept="image/*" capture="environment" ref={fileRef} className="hidden" onChange={handleFoto} />
+          </div>
+        )}
 
         {/* NOTA */}
         <div>
@@ -308,11 +378,11 @@ export default function SubirSolicitud({ onBack, user, selectedObra }) {
 
         {/* SUBMIT */}
         <div className="pt-2 pb-8">
-          <button type="submit" disabled={subiendo || !obraId || !descripcion.trim()}
+          <button type="submit" disabled={subiendo || !obraId || (tipo === 'gasto' ? (!foto || !monto) : !descripcion.trim())}
             className="w-full p-4 rounded-xl text-white font-black text-lg flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
-            style={{ background: tipo === 'material' ? '#d97706' : '#6366f1' }}>
+            style={{ background: tipo === 'gasto' ? '#f43f5e' : (tipo === 'material' ? '#d97706' : '#6366f1') }}>
             {subiendo ? <Loader2 className="animate-spin" size={24} /> : <SendHorizonal size={24} />}
-            {subiendo ? 'Enviando...' : 'Enviar Solicitud'}
+            {subiendo ? 'Enviando...' : (tipo === 'gasto' ? 'Enviar a Revisión' : 'Enviar Solicitud')}
           </button>
         </div>
 
