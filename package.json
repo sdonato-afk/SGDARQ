@@ -8,7 +8,17 @@
     "inspeccion-client",
     "packages/*"
   ],
+  "scripts": {
+    "dev":         "concurrently --kill-others-on-fail -n webapp,obras,agenda -c green,blue,yellow \"npm run dev --workspace=webapp\" \"npm run dev --workspace=obras-client\" \"npm run dev --workspace=agenda-client\"",
+    "dev:webapp":  "npm run dev --workspace=webapp",
+    "dev:obras":   "npm run dev --workspace=obras-client",
+    "dev:agenda":  "npm run dev --workspace=agenda-client",
+    "dev:inspec":  "npm run dev --workspace=inspeccion-client",
+    "dev:all":     "concurrently --kill-others-on-fail -n webapp,obras,agenda,inspec -c green,blue,yellow,magenta \"npm run dev --workspace=webapp\" \"npm run dev --workspace=obras-client\" \"npm run dev --workspace=agenda-client\" \"npm run dev --workspace=inspeccion-client\"",
+    "build":       "npm run build --workspace=obras-client && npm run build --workspace=agenda-client && npm run build --workspace=webapp && npm run build --workspace=inspeccion-client"
+  },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "firebase-admin": "^13.8.0"
   }
 }
